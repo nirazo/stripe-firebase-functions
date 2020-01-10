@@ -1,5 +1,5 @@
 {
   "projects": {
-    "default": "stripe-firebase-functions"
+    "default": "ios-login-billing"
   }
 }
