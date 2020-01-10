@@ -3,6 +3,43 @@ import * as functions from 'firebase-functions';
 // // Start writing Firebase Functions
 // // https://firebase.google.com/docs/functions/typescript
 //
-// export const helloWorld = functions.https.onRequest((request, response) => {
-//  response.send("Hello from Firebase!");
-// });
+
+const stripe = require('stripe')(functions.config().stripe.token)
+
+// stripeのcustomerを作成してcustomIdを返す
+exports.createStripeCustomer = functions.https.onCall(async (data, context) => {
+    const email = data.emaill
+    const customer = await stripe.customers.create({email: email});
+    const customerId = customer.id
+    return { customerId: customerId }
+});
+
+// Stripeのワンタイムトークン発行
+exports.createStripeEphemeralKeys = functions.https.onCall((data, context) => {
+    const customerId = data.customerId;
+    const stripe_version = data.stripe_version;
+    return stripe.ephemeralKeys
+    .create({
+        customer: customerId,
+        stripe_version: stripe_version
+    })
+});
+
+// Stripeで決済
+exports.createStripeCharge = functions.https.onCall((data, context) => {
+    const customer = data.customerId;
+    const source = data.sourceId;
+    const amount = data.amount;
+
+    return stripe.charges.create({
+        customer: customer,
+        source: source,
+        amount: amount,
+        currency: 'jpy',
+    })
+});
+
+
+export const helloWorld = functions.https.onRequest((request, response) => {
+ response.send("Hello from Firebase!");
+});
